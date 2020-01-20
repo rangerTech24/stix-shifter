@@ -10,9 +10,10 @@ The purpose of this guide is to show the steps in creating the Transmission Modu
 | Folder/file                 | Why is it important? Where is it used?                                  |
    | --------------------------- | ----------------------------------------------------------------------- |
    | **init**.py                 | This file is required by Python to properly handle library directories. |
-   | apiclient.py                |
-   | async_dummy_connector.py    |
-   | async_dummy_error_mapper.py |
+   | apiclient.py                | This file contains all REST api Calls to Cloud Identity. |
+   | cloudIdentiy_connector.py    | Initalizes cloudIdentity_*_connector.py files |
+   | cloudIdentity_results_connector.py | This file takes in search_id, offset, and length. Calls apiclient.py and returns results based on input parameters | 
+   | cloudIdentity_ping.py | This file verifies that the Cloud Identity Tenant is running |
 
 ## Command Line Example
 
