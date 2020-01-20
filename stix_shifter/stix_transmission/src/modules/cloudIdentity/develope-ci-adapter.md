@@ -117,13 +117,17 @@ python3 main.py transmit cloudIdentity '{"host": "Host Name", "port": "Host Port
 
     - Creates a `search_id`.  
 
-        **Note**: In the connectors final deployment the search_id is initialized when the `cloudIdentity_query_connector.py` is called.  For testing purposes the search_id is created here.
+        **Note**: In the connectors final deployment, the search_id is initialized when the `cloudIdentity_query_connector.py` is called.  For testing purposes the search_id is created here.
 
-    - Calls `apiclient.get_search_results(search_id, offset, length)`
+    - Calls `apiclient.get_search_results(search_id, offset, length)` to acquire search results 
 
 3. `apiclient.get_search_results` parses the query and initalizes the request parameters and the request payload
     - Request Parameters:
-    `username = 'test-username'`
+    ```
+    {
+        username = 'test-username'
+    }
+    ```
     - Request Payload:
     ```
     {
@@ -140,8 +144,49 @@ python3 main.py transmit cloudIdentity '{"host": "Host Name", "port": "Host Port
     1. `user_activity`
     2. `app_audit_trail`
     3. `auth_audit_trail`
-    **Note**: Each report returns a different JSON response
 
+    **Note**: Each report returns a different JSON response
+6. Example API call for `auth_audit_trail`:
+    - Using Payload and Parameters in step 3, Cloud Identity's response: 
+    ```
+    {'response': {'report': {'hits': [{'_id': 'df2ff27f-f962-448f-a5ee-5a482805bf88',
+                                    '_index': 'event-authentication-2020.1-000001',
+                                    '_source': {'data': {'origin': '71.65.247.60',
+                                                            'realm': 'https://w3id.sso.ibm.com/auth/sps/samlidp2/saml20',
+                                                            'result': 'success',
+                                                            'subject': '650003TBP0',
+                                                            'subtype': 'federation',
+                                                            'username': 'test-username'},
+                                                'geoip': {'country_iso_code': 'US',
+                                                            'country_name': 'United '
+                                                                            'States',
+                                                            'region_name': 'North '
+                                                                            'Carolina'},
+                                                'time': 1578075021506},
+                                    '_type': 'doc',
+                                    'sort': [1578075021506,
+                                                'df2ff27f-f962-448f-a5ee-5a482805bf88']}],
+                            'total': 5}},
+    'success': True}
+    ```
+    - Because the JSON path to the information is complex, `auth_audit_trail` will then refine the JSON object down to:
+    ```
+    {'data': {'origin': '71.65.247.60',
+          'realm': 'https://w3id.sso.ibm.com/auth/sps/samlidp2/saml20',
+          'result': 'success',
+          'subject': '650003TBP0',
+          'subtype': 'federation',
+          'username': 'test-user'},
+    'geoip': {'country_iso_code': 'US',
+           'country_name': 'United States',
+           'region_name': 'North Carolina'},
+    'time': 1578075021506}
+    ``` 
+    **Note**: Each report refines the JSON object appropriately 
+
+7. After each report send a request, all reports are merged together to create a report with all useful data
+
+8. The data is then returned back to `cloudIdentity_results_connecter.py` as a response object that will then be interpretted by the Cloud Identity Translation Module
 
 
 
