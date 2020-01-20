@@ -1,7 +1,7 @@
 {  
     "id": {
       "key": "user-account.user_id",
-      "object": "user-id"
+      "object": "user"
     },
     "name": 
     {
@@ -30,35 +30,6 @@
         "object": "user"
     }
     },
-    "emails": 
-          {
-            "value": {
-            "key": "email-addr.value",
-            "object": "email"
-          },
-            "display_name": {
-              "key": "email-addr.display_name",
-              "object": "email"
-          } 
-        },
-
-    "displayName": {
-      "key": "user-account.display_name",
-      "object": "user"
-    },
-
-    "origin": {
-      "key": "ipv4-addr.value",
-      "object": "ip"
-    },
-    "targetid": {
-      "key": "user-account.user_id",
-       "object": "event_user"
-    },
-    "targetid_username": {
-      "key": "user-account.account_login",
-      "object": "event_user"
-    },
 
     "data": {
       "origin": {
@@ -74,34 +45,17 @@
       "object": "user"
       }
     },
-
     "geoip": {
-      "city_name": {
-        "key": "Geo Location.city",
-        "cybox": false,
-        "object": "geo"
-      },
-      "continent_name": {
-        "key": "Geo Location.continent",
-        "cybox": false,
-        "object": "geo"
-      },
       "country_name": {
         "key": "Geo Location.country_name",
-        "cybox": false,
         "object": "geo"
       },
       "region_name": {
         "key": "Geo Location.region_name",
-        "cybox": false,
         "object": "geo"
       }
-
     }
-    
 
-
-  
 }
 
 

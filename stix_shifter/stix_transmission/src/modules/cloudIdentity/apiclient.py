@@ -54,11 +54,6 @@ class APIClient():
     def run_search(self, query_expression):
         #Run search on Cloud identity reports  
         report_response = self.search_reports(query_expression)
-
-        #Run search on cloud identity events
-        #events_response = self.search_events(query_expression)
-        
-        #TODO integrate event/report responses
         
         return report_response
 
@@ -105,52 +100,63 @@ class APIClient():
         #Parse out request parameters in query 
         request_params = self.parse_query()
         self.payload = json.dumps(self.set_payload(request_params,length))
-        print(self.payload)
         #If input query contains user-account:user_id(MAPS TO)->user_id connector will getUser{user_id} in api_client
         if "userid" in request_params:
-            
-            user = self.getUser(request_params["userid"])
-            return_obj = self.mergeJson(return_obj, json.loads(user.read()))
-
-            # 1) search user_activity 
-            user_activity = self.get_user_activity(request_params)
-            return_obj = self.mergeJson(return_obj, json.loads(user_activity.read()))
-
-            # 2) search application audit reports
-            app_audit = self.get_app_audit(request_params)
-            return_obj = self.mergeJson(return_obj, json.loads(app_audit.read()))
-
-            # 3) search authentication audit reports
-            user_auth = self.get_auth_audit(request_params)
-            return_obj = self.mergeJson(return_obj, json.loads(user_auth.read()))
-            
-            resp = self.createResponse(user_auth, return_obj)
+            resp = self.call_reports(request_params)
+            data = json.loads(resp.read())
+           
+            user = self.getUser(request_params['userid'])
+            data = self.mergeJson(data, json.loads(user.read()))
+                
+            resp = self.createResponse(resp, data)
+       
             return resp
             
         if "username" in request_params:
-            
+
+            resp = self.call_reports(request_params)
+            data = json.loads(resp.read())
+
             user = self.getUserWithFilters(request_params)
-            #pp.pprint(json.loads(user.read()))
-            # 1) search user_activity 
-            user_activity = self.get_user_activity(request_params)
-            # 2) search application audit reports
-            app_audit = self.get_app_audit(request_params)
-            # 3) search authentication audit reports
-            user_auth = self.get_auth_audit(request_params)
+            data = self.mergeJson(data, json.loads(user.read()))
+            
+            resp = self.createResponse(resp, data)
+
+            return resp
 
         #If input query contains ipv4:value(MAPS TO)->origin -- searches user_activity on ip
         if "client_ip" in request_params:
             # 1) search user_activity 
-            user_activity = self.get_user_activity(request_params)
-            # 2) search application audit reports
-            app_audit = self.get_app_audit(request_params)
-            # 3) search authentication audit reports
-            user_auth = self.get_auth_audit(request_params)
+            return_obj = self.call_reports(request_params)
+            data = json.loads(return_obj.read())
 
-        #return user_activity
-        #return app_audit
-        #return user_auth
-        #return user
+            if "subject" in data['data']:
+                user = self.getUser(data['data']['subject'])
+                data = self.mergeJson(data, json.loads(user.read()))
+            elif "username" in response['data']:
+                user = self.getUserWithFilters(data['data'])
+                data = self.mergeJson(data, json.loads(user.read()))
+
+            resp = self.createResponse(return_obj, data)
+            return resp
+
+
+    def call_reports(self, request_params):
+        return_obj = dict()
+        # 1) search user_activity 
+        user_activity = self.get_user_activity(request_params)
+        return_obj = self.mergeJson(return_obj, json.loads(user_activity.read()))
+
+        # 2) search application audit reports
+        app_audit = self.get_app_audit(request_params)
+        return_obj = self.mergeJson(return_obj, json.loads(app_audit.read()))
+
+        # 3) search authentication audit reports
+        user_auth = self.get_auth_audit(request_params)
+        return_obj = self.mergeJson(return_obj, json.loads(user_auth.read()))
+
+        resp = self.createResponse(user_auth, return_obj)
+        return resp
     def delete_search(self, search_id):
         # Optional since this may not be supported by the data source API
         # Delete the search
@@ -307,13 +313,24 @@ class APIClient():
         return response
     
     def getUserWithFilters(self, params):
-        endpoint = "/v2.0/Users?filter=username%20eq%20%22{}%22".format(params['username'])
+        endpoint = "/v2.0/Users" + self.set_filters(params)
 
         response = self.client.call_api(endpoint, 'GET', headers=self.headers)
-        jresp = json.loads(str(response.read(), 'utf-8'))
-
-        retResp = self.createResponse(response, jresp['Resources'])
+        jresp = json.loads(response.read())
+        
+        retResp = self.createResponse(response, jresp['Resources'][0])
         return retResp
+    
+    #Used to convert request parameters into scim formatted query
+    def set_filters(self, params):
+        params.pop("TO")
+        params.pop("FROM")
+
+        filters = urllib.parse.urlencode(params)
+        
+        retFilters = re.sub("=", "%20eq%20%22", filters) + "%22"
+
+        return "?filter=" + retFilters
 
     def _add_headers(self, key, value):
         self.headers[key] = value
@@ -377,7 +394,6 @@ class APIClient():
 
     #merges two json/dict objects - purpose to to create more robust stix report by adding new data
     def mergeJson(self, dict1, dict2):
-        
         dict1.update(dict2)
         return dict1
 
