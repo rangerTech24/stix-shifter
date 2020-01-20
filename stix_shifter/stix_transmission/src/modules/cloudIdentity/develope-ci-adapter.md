@@ -1,5 +1,13 @@
 # Developing Cloud Identity Transmission Module
 
+[Reference-STIX-adapter-guide](../../../../../adapter-guide/develop-stix-adapter.md)
+
+
+## Introduction
+The purpose of this guide is to show the steps in creating the Transmission Module for Cloud Identity.
+
+
+
 ## Command Line Example
 
 ```
