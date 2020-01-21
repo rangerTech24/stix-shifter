@@ -9,7 +9,7 @@
 - Authentication Objects: Connection Object - Configuration Object
 
 ## Transmit Introduction
-Transmit offers several functions: `ping`, `query`, `results`.
+Transmit offers several functions: `ping`, ` query`, ` results`.
 
 The purpose of this guide is to show the steps in creating the Transmission Module for Cloud Identity.  Each of the transmit functions takes in common arguments: the connection object, and the configuration object.  Each of the [CLI commands](#Available-Commands) can be run in the terminal in the stix-shifter root directory.  
 

@@ -57,9 +57,22 @@ class APIClient():
         
         return report_response
 
-    def ping_data_source(self):
-        # Pings the data source
-        return "async ping"
+    def ping(self):
+        respObj = Response()
+        if (self.getToken()):
+            respObj.code = "200"
+            respObj.error_type = ""
+            respObj.status_code = 200
+            content = '{"status":"OK", "data": {"message": "Service is up."}}'
+            respObj._content = bytes(content, 'utf-8')
+        else:
+            respObj.code = "503"
+            respObj.error_type = "Service Unavailable"
+            respObj.status_code = 503
+            content = '{"status":"Failed", "data": {"message": "Service is down."}}'
+            respObj._content = bytes(content, 'utf-8')
+        # return
+        return ResponseWrapper(respObj)
 
     def create_search(self, query_expression):
         # Queries the data source
