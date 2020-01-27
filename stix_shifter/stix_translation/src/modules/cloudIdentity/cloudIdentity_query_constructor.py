@@ -12,6 +12,7 @@ REFERENCE_DATA_TYPES = {"SourceIpV4": ["ipv4", "ipv4_cidr"],
                         "SourceIpV6": ["ipv6"],
                         "DestinationIpV4": ["ipv4", "ipv4_cidr"],
                         "DestinationIpV6": ["ipv6"]}
+                    
 
 logger = logging.getLogger(__name__)
 

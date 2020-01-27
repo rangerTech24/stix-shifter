@@ -26,6 +26,6 @@ class CloudIdentityQueryConnector(BaseQueryConnector):
             return_obj['search_id'] = response_dict['search_id']
         else:
             ErrorResponder.fill_error(return_obj, response_dict, ['message'])
-            
+        print(return_obj)
         return return_obj
         

@@ -12,7 +12,7 @@ class CloudIdentityResultsConnector(BaseConnector):
     def create_results_connection(self, search_id, offset, length):
         #FOR TESTING RESULTS TODO delete when done
         self.api_client.create_search(search_id)
-
+        
 
         pp = pprint.PrettyPrinter(indent=1)
 
@@ -26,11 +26,11 @@ class CloudIdentityResultsConnector(BaseConnector):
             return_obj['search_id'] = search_id
             
             #FOR DEMO PURPOSES JSON.DUMP whole object #TODO delete when done testing UDS expects return_obj['data']
-            return_obj = results
-            return_obj = json.dumps(return_obj)
+            #return_obj = results
+            #return_obj = json.dumps(return_obj)
             #pp.pprint(return_obj)
             #TODO what is actually responded uncomment when done testing
-            #return_obj['data'] = json.dumps(results)
+            return_obj['data'] = json.dumps(results)
 
         else:
             ErrorResponder.fill_error(return_obj, results, ['message'])
