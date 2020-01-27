@@ -57,42 +57,42 @@ python main.py transmit cloudIdentity <Connection Object> <Configuration Object>
 
 ### Available-Commands
 
-#### Ping
+### Ping
 
     Using configuration object - test if a access token can be initalized
 
-    ##### CLI COMMAND
+##### CLI COMMAND
 
     `python main.py transmit cloudIdentity '<CONNECTION OBJECT>' '<CONFIGURATION OBJECT>' ping`
 
 
-    ##### OUTPUT
+##### OUTPUT
 
     `{'success': True}`
 
 
-#### Query 
+### Query 
 
     Uses Cloud Identity API to submit a query to the connection
 
-    ##### CLI COMMAND
+##### CLI COMMAND
 
     `python main.py transmit cloudIdentity '<CONNECTION OBJECT>' '<CONFIGURATION OBJECT>' query <CLOUD IDENTITY QUERY>`
 
-    ##### OUTPUT
+##### OUTPUT
 
     `{ 'success' : True, 'search_id' : <SEARCH ID> }`
 
 
-#### Results
+### Results
 
     Uses Cloud Identity API to fetch the query results.  Because Cloud Identity is report driven application, the use of report API's are used to gather information.  Report API's currently implemented are `auth_audit_trail`, `app_audit_trail`, and `user_activity`.  In cases where the `userid` or `username` are present in query, a call to `getUser(userid)` or `getUserWithFilter(username)` are used along with reports listed above. 
 
-    ##### CLI COMMAND
+##### CLI COMMAND
 
     `python main.py transmit cloudIdentity '<CONNECTION OBJECT>' '<CONFIGURATION OBJECT>' results <SEARCH_ID> <OFFSET> <LENTH>`
 
-    ##### OUTPUT
+##### OUTPUT
 
     `{ 'success' : True, 'data' : [<QUERY RESULTS>] }`
 
