@@ -44,7 +44,8 @@ The purpose of this guide is to show the steps in creating the Translation Modul
 The `from_stix_map.json` is used to define HOW to translate a STIX pattern to a Cloud Identity query.  STIX patterns are expressions that represent Cyber Observable Objects.  
  1. Identity the Cloud Identity source fields.
  2. In your `cloudIdentity` translation folder, go to your json/ subfolder and edit the `from_stix_map.json` file. This file contains mappings to the current STIX objects and properties supported by the Cloud Identity connector.
-  - Generic STIX Object Mapping Format:
+
+ #### Generic STIX Object Mapping Format:
   ```
     {
         "stix-object": {
@@ -56,13 +57,14 @@ The `from_stix_map.json` is used to define HOW to translate a STIX pattern to a 
     }
   ```
   - Map your Cloud Identity fields to a STIX object and property. Define the mapping based on the specified format. You can map multiple data source fields to the same STIX object property. 
-   - "stix-object" refer to a STIX cyber observable object type name
-   - "stix_object_property" refers to a STIX cyber observable object property name
+    - "stix-object" refer to a STIX cyber observable object type name
+    - "stix_object_property" refers to a STIX cyber observable object property name
 
 #### Example STIX Object Mapping for Cloud Identity:
 
 The following example illustrates the mapping of STIX objects (user-account, ipv4-addr) to a Cloud Identity with the fields – userid, username, client_ip.
-Reference: [from_stix_map](.json/from_stix_map.json)
+
+Reference: [from_stix_map](json/from_stix_map.json)
 
   ```
 {
