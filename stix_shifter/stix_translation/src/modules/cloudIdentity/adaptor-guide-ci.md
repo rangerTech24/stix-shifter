@@ -18,8 +18,8 @@ The purpose of this guide is to show the steps in creating the Translation Modul
 
 
 ## Translation Modules
-| Folder/file             | Why is it important? Where is it used?                                                                                                                                                                                                                                                                     |
 
+| Folder/file             | Why is it important? Where is it used?                                                                                                                                                                                                                                                                     |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | json/from_stix_map.json | This mapping file is used to translate a STIX pattern to a data source query result.                                                                                                                                                                                                                       |
 | json/to_stix_map.json   | This mapping file is used to translate a data source query result into STIX objects.                                                                                                                                                                                                                       |
@@ -30,6 +30,7 @@ The purpose of this guide is to show the steps in creating the Translation Modul
 | stix_to_query.py        | This file contains the StixToQuery class, which inherits the BaseQueryTranslator class. <br><br>StixToQuery calls out to the ANTLR parser, which returns a parsing of the STIX pattern. The parsing is then passed onto the query_constructor.py where it is translated into the native data source query. |
 | transformers.py         | This file is used to transform data formats as required by STIX and the native data source query language.                                                                                                                                                                                                 |
 | MANIFEST.in             | This file is used by Python when packaging the library.                                                                                                                                                                                                                                                    |
+
 
 ## Steps used for implementation:
 1. Translate STIX Query
