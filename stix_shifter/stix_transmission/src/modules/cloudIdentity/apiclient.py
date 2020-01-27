@@ -120,7 +120,8 @@ class APIClient():
         #pp.pprint(json.loads(resp.read()))
         return resp
         
-
+    # Supports Cloud Identity's main report calls:  
+    # User_activity - Application Audit Trail - Authentication Audit Trial
     def call_reports(self, request_params):
         return_obj = dict()
         # 1) search user_activity 
