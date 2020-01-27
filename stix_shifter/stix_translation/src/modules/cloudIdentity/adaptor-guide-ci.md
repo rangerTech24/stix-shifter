@@ -1,6 +1,7 @@
 # Developing Cloud Identity Translation Modules
 
 [STIX-adapter-guide](../../../../../adapter-guide/develop-stix-adapter.md)
+
 [Cloud Identity Transmission Adaptor Guide](../../../../stix_transmission/src/modules/cloudIdentity/develope-ci-adapter.md)
 
 ## Prerequistes 
@@ -32,7 +33,51 @@ The purpose of this guide is to show the steps in creating the Translation Modul
 | transformers.py         | This file is used to transform data formats as required by STIX and the native data source query language.                                                                                                                                                                                                 |
 | MANIFEST.in             | This file is used by Python when packaging the library.                                                                                                                                                                                                                                                    |
 
-## Overview of Proces
+## Overview of Process
 1. Translate STIX Query to Cloud Identity Query,
 2. Transmit Cloud Identity Query. See [Cloud Identity Transmission Adaptor Guide](../../../../stix_transmission/src/modules/cloudIdentity/develope-ci-adapter.md)
 3. Translate Cloud Identity Response into STIX Bundle
+
+## Steps for Implementation 
+
+### Step 1: Edit the from_stix_map JSON file
+The `from_stix_map.json` is used to define HOW to translate a STIX pattern to a Cloud Identity query.  STIX patterns are expressions that represent Cyber Observable Objects.  
+ 1. Identity the Cloud Identity source fields.
+ 2. In your `cloudIdentity` translation folder, go to your json/ subfolder and edit the `from_stix_map.json` file. This file contains mappings to the current STIX objects and properties supported by the Cloud Identity connector.
+  - Generic STIX Object Mapping Format:
+  ```
+    {
+        "stix-object": {
+            "fields": {
+                "stix_object_property": ["DataSourceField", "DataSourceField"],
+                "stix_object_property": ["DataSourceField"]
+            }
+        }
+    }
+  ```
+  - Map your Cloud Identity fields to a STIX object and property. Define the mapping based on the specified format. You can map multiple data source fields to the same STIX object property. 
+   - "stix-object" refer to a STIX cyber observable object type name
+   - "stix_object_property" refers to a STIX cyber observable object property name
+
+#### Example STIX Object Mapping for Cloud Identity:
+
+The following example illustrates the mapping of STIX objects (user-account, ipv4-addr) to a Cloud Identity with the fields – userid, username, client_ip.
+Reference: [from_stix_map](.json/from_stix_map.json)
+
+  ```
+{
+    "user-account": {
+        "fields": {
+            "user_id": ["userid"],
+            "account_login": ["username"], 
+            //More fields are in file
+            }
+    },
+    "ipv4-addr": {
+        "fields": {
+                "value":["client_ip"]
+            }
+        }
+}
+  ```
+ 
