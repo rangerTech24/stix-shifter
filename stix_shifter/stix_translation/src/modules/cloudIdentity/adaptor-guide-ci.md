@@ -62,17 +62,17 @@ The `from_stix_map.json` is used to define HOW to translate a STIX pattern to a 
 
 #### Example STIX Object Mapping for Cloud Identity:
 
-The following example illustrates the mapping of STIX objects (user-account, ipv4-addr) to a Cloud Identity with the fields – userid, username, client_ip.
+The following example illustrates the mapping of STIX objects (user-account, ipv4-addr) to a Cloud Identity with the fields – userid, username, client_ip. **NOTE** 
 
-Reference: [from_stix_map](json/from_stix_map.json)
+Reference: [from_stix_map.json](json/from_stix_map.json)
 
-  ```
+```
 {
     "user-account": {
         "fields": {
             "user_id": ["userid"],
             "account_login": ["username"], 
-            //More fields are in file
+            //More fields in mapping file
             }
     },
     "ipv4-addr": {
@@ -81,5 +81,11 @@ Reference: [from_stix_map](json/from_stix_map.json)
             }
         }
 }
-  ```
+```
+
+The following STIX pattern is supported in the example mapping because the STIX objects (network-traffic and ipv4-addr) and their properties are defined in the file and mapped to Cloud Identity fields.
+
+```
+"[user-account:user_id = 123456 AND ipv4-addr:value = '1.1.1.1']" 
+```
  
