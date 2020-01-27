@@ -1,6 +1,7 @@
 # Developing Cloud Identity Translation Modules
 
 [STIX-adapter-guide](../../../../../adapter-guide/develop-stix-adapter.md)
+[Cloud Identity Transmission Adaptor Guide](../../../../stix_transmission/src/modules/cloudIdentity/develope-ci-adapter.md)
 
 ## Prerequistes 
 - Your development environment must use Python 3.6.
@@ -31,8 +32,7 @@ The purpose of this guide is to show the steps in creating the Translation Modul
 | transformers.py         | This file is used to transform data formats as required by STIX and the native data source query language.                                                                                                                                                                                                 |
 | MANIFEST.in             | This file is used by Python when packaging the library.                                                                                                                                                                                                                                                    |
 
-
-## Steps used for implementation:
-1. Translate STIX Query
-2. Transmit Query to Cloud Identity. These steps are in [Transmission Adaptor Guide](../../../../stix_transmission/src/modules/cloudIdentity/develope-ci-adapter.md)
-3. Translate Cloud Identity Response
+## Overview of Proces
+1. Translate STIX Query to Cloud Identity Query,
+2. Transmit Cloud Identity Query. See [Cloud Identity Transmission Adaptor Guide](../../../../stix_transmission/src/modules/cloudIdentity/develope-ci-adapter.md)
+3. Translate Cloud Identity Response into STIX Bundle
