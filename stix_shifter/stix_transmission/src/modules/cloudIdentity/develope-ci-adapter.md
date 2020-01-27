@@ -15,7 +15,7 @@ The purpose of this guide is to show the steps in creating the Transmission Modu
 
 ### Transmission call template
 ```
-python main.py transmit cloudIdentity <Connection Object> <Configuration Object> <results,ping, query> <Query> <offset> <length>
+python main.py transmit cloudIdentity <Connection Object> <Configuration Object> <results,ping,query> <Query> <offset> <length>
 ```
 
 #### Connection Object
@@ -57,46 +57,46 @@ python main.py transmit cloudIdentity <Connection Object> <Configuration Object>
 
 ### Available-Commands
 
-#### Ping
+### Ping
 
-Using configuration object - test if a access token can be initalized
+    Using configuration object - test if a access token can be initalized
 
 ##### CLI COMMAND
 
-`python main.py transmit cloudIdentity '<CONNECTION OBJECT>' '<CONFIGURATION OBJECT>' ping`
+    `python main.py transmit cloudIdentity '<CONNECTION OBJECT>' '<CONFIGURATION OBJECT>' ping`
 
 
 ##### OUTPUT
 
-`{'success': True}`
+    `{'success': True}`
 
 
-#### Query 
+### Query 
 
-Uses Cloud Identity API to submit a query to the connection
-
-##### CLI COMMAND
-
-`python main.py transmit cloudIdentity '<CONNECTION OBJECT>' '<CONFIGURATION OBJECT>' query <CLOUD IDENTITY QUERY>`
-
-##### OUTPUT
-
-`{ 'success' : True, 'search_id' : <SEARCH ID> }`
-
-
-#### Results
-
-Uses Cloud Identity API to fetch the query results.  Because Cloud Identity is report driven application, the use of report API's are used to gather information.  Report API's currently implemented are `auth_audit_trail`, `app_audit_trail`, and `user_activity`.  In cases where the `userid` or `username` are present in query, a call to `getUser(userid)` or `getUserWithFilter(username)` are used along with reports listed above. 
+    Uses Cloud Identity API to submit a query to the connection
 
 ##### CLI COMMAND
 
-`python main.py transmit cloudIdentity '<CONNECTION OBJECT>' '<CONFIGURATION OBJECT>' results <SEARCH_ID> <OFFSET> <LENTH>`
+    `python main.py transmit cloudIdentity '<CONNECTION OBJECT>' '<CONFIGURATION OBJECT>' query <CLOUD IDENTITY QUERY>`
 
 ##### OUTPUT
 
-`{ 'success' : True, 'data' : [<QUERY RESULTS>] }`
+    `{ 'success' : True, 'search_id' : <SEARCH ID> }`
 
-**NOTE: Before the QUERY RESULTS are sent to the translation modules the JSON response from Cloud Identity has to be refined.  This is done to make the translation code readable and simple to implement.  Results Example below**
+
+### Results
+
+    Uses Cloud Identity API to fetch the query results.  Because Cloud Identity is report driven application, the use of report API's are used to gather information.  Report API's currently implemented are `auth_audit_trail`, `app_audit_trail`, and `user_activity`.  In cases where the `userid` or `username` are present in query, a call to `getUser(userid)` or `getUserWithFilter(username)` are used along with reports listed above. 
+
+##### CLI COMMAND
+
+    `python main.py transmit cloudIdentity '<CONNECTION OBJECT>' '<CONFIGURATION OBJECT>' results <SEARCH_ID> <OFFSET> <LENTH>`
+
+##### OUTPUT
+
+    `{ 'success' : True, 'data' : [<QUERY RESULTS>] }`
+
+    **NOTE: Before the QUERY RESULTS are sent to the translation modules the JSON response from Cloud Identity has to be refined.  This is done to make the translation code readable and simple to implement.  Results Example below**
 
 #### Results Example
 
