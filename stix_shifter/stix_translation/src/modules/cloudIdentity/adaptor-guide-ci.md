@@ -18,6 +18,8 @@ The purpose of this guide is to show the steps in creating the Translation Modul
 
 
 ## Translation Modules
+| Folder/file             | Why is it important? Where is it used?                                                                                                                                                                                                                                                                     |
+
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | json/from_stix_map.json | This mapping file is used to translate a STIX pattern to a data source query result.                                                                                                                                                                                                                       |
 | json/to_stix_map.json   | This mapping file is used to translate a data source query result into STIX objects.                                                                                                                                                                                                                       |
