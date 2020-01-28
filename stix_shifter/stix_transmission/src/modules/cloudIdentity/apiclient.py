@@ -7,6 +7,7 @@ import pprint
 import json, requests
 import re
 import datetime
+import time
 
 
 
@@ -115,7 +116,7 @@ class APIClient():
         request_params = self.parse_query()
         
         payload = self.set_payload(request_params,length)
-        
+        print(json.dumps(payload))
         resp = self.call_reports(payload)
         #pp.pprint(json.loads(resp.read()))
         return resp
@@ -128,13 +129,14 @@ class APIClient():
         #user_activity = self.get_user_activity(request_params)
 
         # 2) search application audit reports
-        app_audit = self.get_app_audit(request_params)
+        #app_audit = self.get_app_audit(request_params)
     
         # 3) search authentication audit reports
-        #user_auth = self.get_auth_audit(request_params)
+        
+        user_auth = self.get_auth_audit(request_params)
 
         #resp = self.createResponse(user_auth, return_obj)
-        return app_audit
+        return user_auth
     def delete_search(self, search_id):
         # Optional since this may not be supported by the data source API
         # Delete the search
@@ -261,12 +263,11 @@ class APIClient():
         if "PERFORMED_BY_USERNAME" in params: params.pop("PERFORMED_BY_USERNAME")
 
         endpoint = "/v1.0/reports/auth_audit_trail" 
-
-        params = json.dumps(params)
-
-        resp = self.client.call_api(endpoint, "POST", headers=self.headers, data=params)
+        data = json.dumps(params)
+        print(data)
+        resp = self.client.call_api(endpoint, "POST", headers=self.headers, data=data)
         jresp = json.loads(resp.read())
-        #pp.pprint(jresp['response']['report']['total'])
+        pp.pprint(jresp)
 
         retList = []
         #If response has more than one return object concat each object
@@ -280,7 +281,6 @@ class APIClient():
     #Get user_activity report - uses filter in params to refine search 
     def get_user_activity(self, params):
         pp = pprint.PrettyPrinter(indent=1)
-        print(params)
         # If username is requested the user-activity report is looking for PERFORMED_BY_USERNAME
         if "USERNAME" in params: params.pop('USERNAME')
 
@@ -338,19 +338,22 @@ class APIClient():
     def set_payload(self, params, length):
         payload = dict()
         #Default payload params
-        payload["FROM"] = params.get("FROM", "now-24h")
-        payload["TO"] = params.get("TO", "now")
+        FROM = datetime.datetime.strptime(params.get("FROM"), '%Y-%m-%dT%H:%M:%S.%f')
+        TO = datetime.datetime.strptime(params.get("TO"), '%Y-%m-%dT%H:%M:%S.%f')
+        payload["FROM"] = FROM.timestamp()
+        payload["TO"] = TO.timestamp()
         payload["SIZE"] = 10 if length is None else length
         payload["SORT_BY"] = "time"
         payload["SORT_ORDER"] = "asc"
-        
+
+
+       
         #format for cloud identity payload attribute ex: USERNAME : "\"nathan.test\""
         if "userid" in params: payload["USERID"] = "\"{}\"".format(params['userid'])
         if "client_ip" in params: payload["CLIENT_IP"] = "\"{}\"".format(params['client_ip'])
         if "username" in params:
             payload['USERNAME'] = "\"{}\"".format(params['username'])
             payload['PERFORMED_BY_USERNAME'] = "\"{}\"".format(params['username'])
-        
         return payload
 
     def parse_query(self):
@@ -363,8 +366,8 @@ class APIClient():
             if(requests[index] == "userid"): params["userid"] = requests[index+2].strip("''")
             elif(requests[index] == "username"): params['username'] = requests[index+2].strip("''")
             elif(requests[index] == "client_ip"): params['client_ip'] = requests[index+2].strip("''")
-            elif(requests[index] == "FROM"): params['FROM'] = requests[index+1].strip("t''")
-            elif(requests[index] == "TO"): params['TO'] = requests[index+1].strip("t''")
+            elif(requests[index] == "FROM"): params['FROM'] = requests[index+1].strip("t'Z'")
+            elif(requests[index] == "TO"): params['TO'] = requests[index+1].strip("t'Z'")
         return params
     #Creates a new reponse - purpose is to refine json response so stix mapping is simple
     def createResponse(self, resp, newContent):
