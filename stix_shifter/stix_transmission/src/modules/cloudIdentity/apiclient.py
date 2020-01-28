@@ -8,6 +8,7 @@ import json, requests
 import re
 import datetime
 import time
+from calendar import timegm
 
 
 
@@ -264,7 +265,7 @@ class APIClient():
 
         endpoint = "/v1.0/reports/auth_audit_trail" 
         data = json.dumps(params)
-        print(data)
+        
         resp = self.client.call_api(endpoint, "POST", headers=self.headers, data=data)
         jresp = json.loads(resp.read())
         pp.pprint(jresp)
@@ -338,10 +339,15 @@ class APIClient():
     def set_payload(self, params, length):
         payload = dict()
         #Default payload params
-        FROM = datetime.datetime.strptime(params.get("FROM"), '%Y-%m-%dT%H:%M:%S.%f')
-        TO = datetime.datetime.strptime(params.get("TO"), '%Y-%m-%dT%H:%M:%S.%f')
-        payload["FROM"] = FROM.timestamp()
-        payload["TO"] = TO.timestamp()
+
+        # Must convert input time to epoch milliseconds
+        FROM = time.strptime(params.get("FROM"), '%Y-%m-%dT%H:%M:%S.%fZ')
+        TO = time.strptime(params.get("TO"), '%Y-%m-%dT%H:%M:%S.%fZ')
+        eFROM = timegm(FROM)
+        eTO = timegm(TO)
+
+        payload["FROM"] = eFROM * 1000
+        payload["TO"] = eTO * 1000
         payload["SIZE"] = 10 if length is None else length
         payload["SORT_BY"] = "time"
         payload["SORT_ORDER"] = "asc"
@@ -354,6 +360,8 @@ class APIClient():
         if "username" in params:
             payload['USERNAME'] = "\"{}\"".format(params['username'])
             payload['PERFORMED_BY_USERNAME'] = "\"{}\"".format(params['username'])
+
+        print(payload)
         return payload
 
     def parse_query(self):
@@ -366,8 +374,8 @@ class APIClient():
             if(requests[index] == "userid"): params["userid"] = requests[index+2].strip("''")
             elif(requests[index] == "username"): params['username'] = requests[index+2].strip("''")
             elif(requests[index] == "client_ip"): params['client_ip'] = requests[index+2].strip("''")
-            elif(requests[index] == "FROM"): params['FROM'] = requests[index+1].strip("t'Z'")
-            elif(requests[index] == "TO"): params['TO'] = requests[index+1].strip("t'Z'")
+            elif(requests[index] == "FROM"): params['FROM'] = requests[index+1].strip("t''")
+            elif(requests[index] == "TO"): params['TO'] = requests[index+1].strip("t''")
         return params
     #Creates a new reponse - purpose is to refine json response so stix mapping is simple
     def createResponse(self, resp, newContent):
