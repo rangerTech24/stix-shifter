@@ -117,14 +117,13 @@ class APIClient():
         request_params = self.parse_query()
         
         payload = self.set_payload(request_params,length)
-        print(json.dumps(payload))
+
         resp = self.call_reports(payload)
-        #pp.pprint(json.loads(resp.read()))
         return resp
         
     # Supports Cloud Identity's main report calls:  
     # User_activity - Application Audit Trail - Authentication Audit Trial
-    def call_reports(self, request_params):
+    def call_reports(self, payload):
         return_obj = dict()
         # 1) search user_activity 
         #user_activity = self.get_user_activity(request_params)
@@ -133,8 +132,7 @@ class APIClient():
         #app_audit = self.get_app_audit(request_params)
     
         # 3) search authentication audit reports
-        
-        user_auth = self.get_auth_audit(request_params)
+        user_auth = self.get_auth_audit(payload)
 
         #resp = self.createResponse(user_auth, return_obj)
         return user_auth
@@ -240,15 +238,15 @@ class APIClient():
                 return True
         return False
 
-    #returns a application audit - uses filter in params to refine search 
-    def get_app_audit(self, params):
+    #returns a application audit - uses filter in payload to refine search 
+    def get_app_audit(self, payload):
         pp = pprint.PrettyPrinter(indent=1)
-        if "username" in params: params.pop("PERFORMED_BY_USERNAME")
+        if "username" in payload: payload.pop("PERFORMED_BY_USERNAME")
         endpoint = "/v1.0/reports/app_audit_trail"
 
 
-        params = json.dumps(params)
-        resp = self.client.call_api(endpoint, "POST", headers=self.headers, data=params)
+        payload = json.dumps(payload)
+        resp = self.client.call_api(endpoint, "POST", headers=self.headers, data=payload)
         jresp = json.loads(str(resp.read(), 'utf-8'))
         #NOTE TODO this only works for one response
         if(bool(jresp['response']['report']['hits'])):
@@ -256,16 +254,16 @@ class APIClient():
    
         return resp
 
-    #returns and authentication audit - uses filter in params to refine search 
-    def get_auth_audit(self, params):
+    #returns and authentication audit - uses filter in payload to refine search 
+    def get_auth_audit(self, payload):
         pp = pprint.PrettyPrinter(indent=1)
-        #Audit params are different for each report call so they are initialized here. (Case sensitive)
+        #Audit payload are different for each report call so they are initialized here. (Case sensitive)
 
-        if "PERFORMED_BY_USERNAME" in params: params.pop("PERFORMED_BY_USERNAME")
+        if "PERFORMED_BY_USERNAME" in payload: payload.pop("PERFORMED_BY_USERNAME")
 
         endpoint = "/v1.0/reports/auth_audit_trail" 
-        data = json.dumps(params)
-        
+        data = json.dumps(payload)
+
         resp = self.client.call_api(endpoint, "POST", headers=self.headers, data=data)
         jresp = json.loads(resp.read())
         pp.pprint(jresp)
@@ -279,17 +277,17 @@ class APIClient():
 
         return resp
 
-    #Get user_activity report - uses filter in params to refine search 
-    def get_user_activity(self, params):
+    #Get user_activity report - uses filter in payload to refine search 
+    def get_user_activity(self, payload):
         pp = pprint.PrettyPrinter(indent=1)
         # If username is requested the user-activity report is looking for PERFORMED_BY_USERNAME
-        if "USERNAME" in params: params.pop('USERNAME')
+        if "USERNAME" in payload: payload.pop('USERNAME')
 
-        params = json.dumps(params)
+        payload = json.dumps(payload)
 
         endpoint = "/v1.0/reports/user_activity"
  
-        resp = self.client.call_api(endpoint, "POST", headers = self.headers, data=params)
+        resp = self.client.call_api(endpoint, "POST", headers = self.headers, data=payload)
         jresp = json.loads(resp.read())
 
         #NOTE TODO have not gotten a reponse from this yet
@@ -307,8 +305,8 @@ class APIClient():
 
         return response
     
-    def getUserWithFilters(self, params):
-        endpoint = "/v2.0/Users" + self.set_filters(params)
+    def getUserWithFilters(self, payload):
+        endpoint = "/v2.0/Users" + self.set_filters(payload)
 
         response = self.client.call_api(endpoint, 'GET', headers=self.headers)
         jresp = json.loads(response.read())
@@ -317,11 +315,11 @@ class APIClient():
         return retResp
     
     #Used to convert request parameters into scim formatted query - only works for one param as of now
-    def set_filters(self, params):
-        params.pop("TO")
-        params.pop("FROM")
+    def set_filters(self, payload):
+        payload.pop("TO")
+        payload.pop("FROM")
 
-        filters = urllib.parse.urlencode(params)
+        filters = urllib.parse.urlencode(payload)
         
         retFilters = re.sub("=", "%20eq%20%22", filters) + "%22"
 
@@ -343,11 +341,10 @@ class APIClient():
         # Must convert input time to epoch milliseconds
         FROM = time.strptime(params.get("FROM"), '%Y-%m-%dT%H:%M:%S.%fZ')
         TO = time.strptime(params.get("TO"), '%Y-%m-%dT%H:%M:%S.%fZ')
-        eFROM = timegm(FROM)
-        eTO = timegm(TO)
-
-        payload["FROM"] = eFROM * 1000
-        payload["TO"] = eTO * 1000
+        eFROM = timegm(FROM) * 1000
+        eTO = timegm(TO) * 1000
+        payload["FROM"] = eFROM
+        payload["TO"] = eTO
         payload["SIZE"] = 10 if length is None else length
         payload["SORT_BY"] = "time"
         payload["SORT_ORDER"] = "asc"
@@ -355,13 +352,11 @@ class APIClient():
 
        
         #format for cloud identity payload attribute ex: USERNAME : "\"nathan.test\""
-        if "userid" in params: payload["USERID"] = "\"{}\"".format(params['userid'])
-        if "client_ip" in params: payload["CLIENT_IP"] = "\"{}\"".format(params['client_ip'])
+        if "userid" in payload: payload["USERID"] = "\"{}\"".format(payload['userid'])
+        if "client_ip" in payload: payload["CLIENT_IP"] = "\"{}\"".format(params['client_ip'])
         if "username" in params:
             payload['USERNAME'] = "\"{}\"".format(params['username'])
             payload['PERFORMED_BY_USERNAME'] = "\"{}\"".format(params['username'])
-
-        print(payload)
         return payload
 
     def parse_query(self):
