@@ -248,9 +248,8 @@ class APIClient():
         payload = json.dumps(payload)
         resp = self.client.call_api(endpoint, "POST", headers=self.headers, data=payload)
         jresp = json.loads(str(resp.read(), 'utf-8'))
-        #NOTE TODO this only works for one response
-        if(bool(jresp['response']['report']['hits'])):
-            resp = self.createResponse(resp, jresp['response']['report']['hits'][0]['_source'])
+       
+            
    
         return resp
 
