@@ -4,6 +4,8 @@ from stix_shifter.stix_translation.src.patterns.pattern_objects import Observati
 from stix_shifter.stix_translation.src.utils.transformers import TimestampToMilliseconds
 from stix_shifter.stix_translation.src.json_to_stix import observable
 import logging
+import json
+import time
 import re
 
 # Source and destination reference mapping for ip and mac addresses.
@@ -42,6 +44,7 @@ class CloudIdentityQueryStringPatternTranslator:
         self.dmm = data_model_mapper
         self.pattern = pattern
         self.translated = self.parse_expression(pattern)
+
 
     @staticmethod
     def _format_set(values) -> str:
@@ -123,6 +126,39 @@ class CloudIdentityQueryStringPatternTranslator:
     def _is_reference_value(stix_field):
         return stix_field == 'src_ref.value' or stix_field == 'dst_ref.value'
 
+    def transform_query_to_json(self, query):
+        print("Init Query: " + query)
+        regex = r"([a-zA-Z_]+)(\s=)"
+        out_str = re.sub(regex, r"'\1' :", query, 0)
+
+        # Create the Json structure
+        regex1 = r"\(|\)"
+        out_str = re.sub(regex1, "", out_str, 0)
+        regex2 = r"\sAND\s"
+        out_str = "{" + re.sub(regex2, "} AND {", out_str, 0) + "}"
+        regex3 = r"FROM"
+        out_str = re.sub(regex3, "} AND {FROM ", out_str, 0)
+        # treat FROM and TO parameters too
+        
+        regex4 = r"(FROM|TO)"
+        out_str = re.sub(regex4, r"'\1' : ", out_str, 0)
+        regex5 = r"([\'\s]+TO)"
+        out_str = re.sub(regex5, r"', 'TO", out_str, 0)
+        regex6 = r"(M|O)\'[\s\:t]+"
+        out_str = re.sub(regex6, r"\1' : ", out_str, 0)
+
+        # Finalize the structure -- replace by comma and then it becomes string containing
+        # an array of Json objects
+        
+        regex7 = r"\sOR|\sAND"
+        out_str = re.sub(regex7, r",", out_str, 0)
+
+        # Single quotes have to be replaced by double quotes in order to make it as an Json obj
+        regex8 = r"'"
+        out_str = "[" + re.sub(regex8, '"', out_str, 0) + "]"
+        
+        return json.loads(out_str)
+
     def _parse_expression(self, expression, qualifier=None) -> str:
         if isinstance(expression, ComparisonExpression):  # Base Case
             # Resolve STIX Object Path to a field in the target Data Model
@@ -135,7 +171,7 @@ class CloudIdentityQueryStringPatternTranslator:
             if stix_field == 'start' or stix_field == 'end':
                 transformer = TimestampToMilliseconds()
                 expression.value = transformer.transform(expression.value)
-
+    
             # Some values are formatted differently based on how they're being compared
             if expression.comparator == ComparisonComparators.Matches:  # needs forward slashes
                 value = self._format_match(expression.value)
@@ -219,12 +255,16 @@ def translate_pattern(pattern: Pattern, data_model_mapping, options):
     # Query result limit and time range can be passed into the QueryStringPatternTranslator if supported by the data source.
     # result_limit = options['result_limit']
     # timerange = options['timerange']
-    query = CloudIdentityQueryStringPatternTranslator(pattern, data_model_mapping).translated
+    cloudIdentity_query_translator = CloudIdentityQueryStringPatternTranslator(pattern, data_model_mapping)
+    query = cloudIdentity_query_translator.translated
+
     # Add space around START STOP qualifiers
-    query = re.sub("START", "START ", query)
-    query = re.sub("STOP", "STOP ", query)
+    query = re.sub("START", "FROM ", query)
+    query = re.sub("STOP", " TO ", query)
+
+    json_query = cloudIdentity_query_translator.transform_query_to_json(query)
 
     # Change return statement as required to fit with data source query language.
     # If supported by the language, a limit on the number of results may be desired.
     # A single query string, or an array of query strings may be returned
-    return "{}".format(query)
+    return "{}".format(json_query)
