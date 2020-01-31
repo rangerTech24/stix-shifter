@@ -115,9 +115,11 @@ class APIClient():
         return_obj = dict()
         #Parse out request parameters in query 
         request_params = self.parse_query()
+        print(request_params)
         
         payload = self.set_payload(request_params,length)
 
+        return 
         resp = self.call_reports(payload)
         return resp
         
@@ -354,14 +356,18 @@ class APIClient():
         payload = dict()
         #Default payload params
 
-        # Must convert input time to epoch milliseconds
+        # convert input time to epoch milliseconds
         FROM = time.strptime(params.get("FROM"), '%Y-%m-%dT%H:%M:%S.%fZ')
         TO = time.strptime(params.get("TO"), '%Y-%m-%dT%H:%M:%S.%fZ')
         eFROM = timegm(FROM) * 1000
         eTO = timegm(TO) * 1000
+
+        #Set required payload parameters
         payload["FROM"] = eFROM
         payload["TO"] = eTO
         payload["SIZE"] = 10 if length is None else length
+
+        #Set default payload parameters 
         payload["SORT_BY"] = "time"
         payload["SORT_ORDER"] = "asc"
 
