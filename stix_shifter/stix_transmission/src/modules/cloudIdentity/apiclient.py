@@ -129,13 +129,13 @@ class APIClient():
         #user_activity = self.get_user_activity(request_params)
 
         # 2) search application audit reports
-        #app_audit = self.get_app_audit(request_params)
+        app_audit = self.get_app_audit(payload)
     
         # 3) search authentication audit reports
-        user_auth = self.get_auth_audit(payload)
+        #user_auth = self.get_auth_audit(payload)
 
-        #resp = self.createResponse(user_auth, return_obj)
-        return user_auth
+        return app_audit
+
     def delete_search(self, search_id):
         # Optional since this may not be supported by the data source API
         # Delete the search
@@ -241,16 +241,27 @@ class APIClient():
     #returns a application audit - uses filter in payload to refine search 
     def get_app_audit(self, payload):
         pp = pprint.PrettyPrinter(indent=1)
+
+        #Set applications to all 
+        payload['APPID'] = "*"
+        #Remove any payload variables that arent readable by report call 
         if "username" in payload: payload.pop("PERFORMED_BY_USERNAME")
         endpoint = "/v1.0/reports/app_audit_trail"
 
+        #Convert data to CI readable data 
+        data = json.dumps(payload)
 
-        payload = json.dumps(payload)
-        resp = self.client.call_api(endpoint, "POST", headers=self.headers, data=payload)
+        resp = self.client.call_api(endpoint, "POST", headers=self.headers, data=data)
         jresp = json.loads(str(resp.read(), 'utf-8'))
-       
-            
-   
+
+
+        retList = []
+        #If response has more than one return object concat each object
+        if(jresp['response']['report']['total'] > 1):
+            retList = self.concatData(jresp['response']['report']['hits'])
+        pp.pprint(retList)
+        resp = self.createResponse(resp, retList)
+
         return resp
 
     #returns and authentication audit - uses filter in payload to refine search 
@@ -261,6 +272,8 @@ class APIClient():
         if "PERFORMED_BY_USERNAME" in payload: payload.pop("PERFORMED_BY_USERNAME")
 
         endpoint = "/v1.0/reports/auth_audit_trail" 
+
+        #Convert data to CI readable data 
         data = json.dumps(payload)
 
         resp = self.client.call_api(endpoint, "POST", headers=self.headers, data=data)
@@ -282,11 +295,11 @@ class APIClient():
         # If username is requested the user-activity report is looking for PERFORMED_BY_USERNAME
         if "USERNAME" in payload: payload.pop('USERNAME')
 
-        payload = json.dumps(payload)
+        data = json.dumps(payload)
 
         endpoint = "/v1.0/reports/user_activity"
  
-        resp = self.client.call_api(endpoint, "POST", headers = self.headers, data=payload)
+        resp = self.client.call_api(endpoint, "POST", headers = self.headers, data=data)
         jresp = json.loads(resp.read())
 
         #NOTE TODO have not gotten a reponse from this yet
@@ -294,6 +307,10 @@ class APIClient():
   
 
         return resp
+
+    def get_admin_activity(self, payload):
+        
+        return
 
        
     def getUser(self, id):
