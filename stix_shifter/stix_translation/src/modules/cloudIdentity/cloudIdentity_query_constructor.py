@@ -129,34 +129,32 @@ class CloudIdentityQueryStringPatternTranslator:
     def transform_query_to_json(self, query):
         regex = r"([a-zA-Z_]+)(\s=)"
         out_str = re.sub(regex, r"'\1' :", query, 0)
-
         # Create the Json structure
         regex1 = r"\(|\)"
         out_str = re.sub(regex1, "", out_str, 0)
         regex2 = r"\sAND\s"
-        out_str = "{" + re.sub(regex2, "} AND {", out_str, 0) + "}"
+        out_str = "{" + re.sub(regex2, " AND ", out_str, 0) + "}"
+        
         regex3 = r"FROM"
-        out_str = re.sub(regex3, "} AND {FROM ", out_str, 0)
+        out_str = re.sub(regex3, "AND FROM ", out_str, 0)
+        
         # treat FROM and TO parameters too
         
         regex4 = r"(FROM|TO)"
         out_str = re.sub(regex4, r"'\1' : ", out_str, 0)
         regex5 = r"([\'\s]+TO)"
-        out_str = re.sub(regex5, r"'} AND {'TO", out_str, 0)
+        out_str = re.sub(regex5, r"', 'TO", out_str, 0)
+        
         regex6 = r"(M|O)\'[\s\:t]+"
         out_str = re.sub(regex6, r"\1' : ", out_str, 0)
-
         # Finalize the structure -- replace by comma and then it becomes string containing
         # an array of Json objects
-        
         regex7 = r"\sOR|\sAND"
         out_str = re.sub(regex7, r",", out_str, 0)
-
         # Single quotes have to be replaced by double quotes in order to make it as an Json obj
         regex8 = r"'"
         out_str = "[" + re.sub(regex8, '"', out_str, 0) + "]"
-        
-        return json.loads(out_str)
+        return out_str
 
     def _parse_expression(self, expression, qualifier=None) -> str:
         if isinstance(expression, ComparisonExpression):  # Base Case

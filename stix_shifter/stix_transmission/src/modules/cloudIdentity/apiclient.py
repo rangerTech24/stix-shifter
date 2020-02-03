@@ -110,10 +110,12 @@ class APIClient():
     def get_search_results(self, search_id, offset=None, length=None):
         # Return the search results. Results must be in JSON format before being translated into STIX
 
-
         pp = pprint.PrettyPrinter(indent=1)
         return_obj = dict()
         #Parse out request parameters in query 
+        user = self.getUser()
+        print(json.loads(search_id))
+        return
         request_params = self.parse_query()
         print(request_params)
         
