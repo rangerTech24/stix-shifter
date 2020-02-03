@@ -133,10 +133,10 @@ class CloudIdentityQueryStringPatternTranslator:
         regex1 = r"\(|\)"
         out_str = re.sub(regex1, "", out_str, 0)
         regex2 = r"\sAND\s"
-        out_str = "{" + re.sub(regex2, " AND ", out_str, 0) + "}"
+        out_str = "{" + re.sub(regex2, "} AND {", out_str, 0) + ", 'SORT_BY': 'time', 'SORT_ORDER': 'asc'" +  "}"
         
         regex3 = r"FROM"
-        out_str = re.sub(regex3, "AND FROM ", out_str, 0)
+        out_str = re.sub(regex3, "} AND {FROM ", out_str, 0)
         
         # treat FROM and TO parameters too
         
@@ -154,7 +154,8 @@ class CloudIdentityQueryStringPatternTranslator:
         # Single quotes have to be replaced by double quotes in order to make it as an Json obj
         regex8 = r"'"
         out_str = "[" + re.sub(regex8, '"', out_str, 0) + "]"
-        return out_str
+        print(json.loads(out_str))
+        return json.loads(out_str)
 
     def _parse_expression(self, expression, qualifier=None) -> str:
         if isinstance(expression, ComparisonExpression):  # Base Case

@@ -111,17 +111,12 @@ class APIClient():
         # Return the search results. Results must be in JSON format before being translated into STIX
 
         pp = pprint.PrettyPrinter(indent=1)
-        return_obj = dict()
-        #Parse out request parameters in query 
-        user = self.getUser()
-        print(json.loads(search_id))
-        return
-        request_params = self.parse_query()
-        print(request_params)
+        payload = self.format_payload(search_id, length)
         
-        payload = self.set_payload(request_params,length)
+        
+        print(payload)
+        return_obj = dict()
 
-        return 
         resp = self.call_reports(payload)
         return resp
         
@@ -133,12 +128,12 @@ class APIClient():
         #user_activity = self.get_user_activity(request_params)
 
         # 2) search application audit reports
-        app_audit = self.get_app_audit(payload)
+        #app_audit = self.get_app_audit(payload)
     
         # 3) search authentication audit reports
-        #user_auth = self.get_auth_audit(payload)
+        user_auth = self.get_auth_audit(payload)
 
-        return app_audit
+        return user_auth
 
     def delete_search(self, search_id):
         # Optional since this may not be supported by the data source API
@@ -273,13 +268,15 @@ class APIClient():
         pp = pprint.PrettyPrinter(indent=1)
         #Audit payload are different for each report call so they are initialized here. (Case sensitive)
 
-        if "PERFORMED_BY_USERNAME" in payload: payload.pop("PERFORMED_BY_USERNAME")
+        #if "PERFORMED_BY_USERNAME" in payload: payload.pop("PERFORMED_BY_USERNAME")
+        payload = payload.strip("[]")
+        reg1 = r"username"
+        data = re.sub(reg1, "USERNAME", payload)
+        reg2 = r"client_ip"
+        data = re.sub(reg2, "CLIENT_IP", data)
 
         endpoint = "/v1.0/reports/auth_audit_trail" 
-
-        #Convert data to CI readable data 
-        data = json.dumps(payload)
-
+        print(data)
         resp = self.client.call_api(endpoint, "POST", headers=self.headers, data=data)
         jresp = json.loads(resp.read())
         pp.pprint(jresp)
@@ -354,48 +351,36 @@ class APIClient():
         self._add_headers("authorization", auth)
         return
 
-    def set_payload(self, params, length):
-        payload = dict()
-        #Default payload params
 
-        # convert input time to epoch milliseconds
-        FROM = time.strptime(params.get("FROM"), '%Y-%m-%dT%H:%M:%S.%fZ')
-        TO = time.strptime(params.get("TO"), '%Y-%m-%dT%H:%M:%S.%fZ')
-        eFROM = timegm(FROM) * 1000
-        eTO = timegm(TO) * 1000
+    #Format the input query into payload send to Cloud Identity
+    def format_payload(self, search_id, length):
+        pp = pprint.PrettyPrinter(indent=1)
+        payload = search_id
 
-        #Set required payload parameters
-        payload["FROM"] = eFROM
-        payload["TO"] = eTO
-        payload["SIZE"] = 10 if length is None else length
+        reg1 = r"'"
+        out_str = re.sub(reg1, "\"", payload)
+        jpayload = json.loads(out_str)
+        #Set size field in payload and set username/userid to correct syntax
+        for index in jpayload:
+            if index.get("FROM") is not None:
+                #Convert input time to epoch milliseconds
+                FROM = time.strptime(index.get("FROM"), '%Y-%m-%dT%H:%M:%S.%fZ')
+                index["FROM"] = timegm(FROM) * 1000
+                index['SIZE'] = int(length)
+            if (index.get("TO")) is not None:
+                TO = time.strptime(index.get("TO"), '%Y-%m-%dT%H:%M:%S.%fZ')
+                index["TO"] = timegm(TO) * 1000
+            if index.get("username") is not None:
+                index["username"] = "\"{}\"".format(index['username'])
+            if index.get("client_ip") is not None:
+                index["client_ip"] = "\"{}\"".format(index['client_ip'])
 
-        #Set default payload parameters 
-        payload["SORT_BY"] = "time"
-        payload["SORT_ORDER"] = "asc"
-
-
-       
-        #format for cloud identity payload attribute ex: USERNAME : "\"nathan.test\""
-        if "userid" in payload: payload["USERID"] = "\"{}\"".format(payload['userid'])
-        if "client_ip" in payload: payload["CLIENT_IP"] = "\"{}\"".format(params['client_ip'])
-        if "username" in params:
-            payload['USERNAME'] = "\"{}\"".format(params['username'])
-            payload['PERFORMED_BY_USERNAME'] = "\"{}\"".format(params['username'])
-        return payload
-
-    def parse_query(self):
+        data = json.dumps(jpayload)
+        #Take }, { out of query to finalize return
+        reg2 = r"}, {"
+        retObj = re.sub(reg2, ", ", data)
+        return retObj
         
-        requests = self.query.split(' ')
-        params = dict()
-
-        #Iterate over query string and assign variables i.e. user-account, ipv4 etc
-        for index in range(len(requests)):
-            if(requests[index] == "userid"): params["userid"] = requests[index+2].strip("''")
-            elif(requests[index] == "username"): params['username'] = requests[index+2].strip("''")
-            elif(requests[index] == "client_ip"): params['client_ip'] = requests[index+2].strip("''")
-            elif(requests[index] == "FROM"): params['FROM'] = requests[index+1].strip("t''")
-            elif(requests[index] == "TO"): params['TO'] = requests[index+1].strip("t''")
-        return params
     #Creates a new reponse - purpose is to refine json response so stix mapping is simple
     def createResponse(self, resp, newContent):
         pp = pprint.PrettyPrinter(indent=1)
