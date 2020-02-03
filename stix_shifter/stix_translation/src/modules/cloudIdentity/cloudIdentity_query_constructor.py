@@ -127,7 +127,6 @@ class CloudIdentityQueryStringPatternTranslator:
         return stix_field == 'src_ref.value' or stix_field == 'dst_ref.value'
 
     def transform_query_to_json(self, query):
-        print("Init Query: " + query)
         regex = r"([a-zA-Z_]+)(\s=)"
         out_str = re.sub(regex, r"'\1' :", query, 0)
 
@@ -143,7 +142,7 @@ class CloudIdentityQueryStringPatternTranslator:
         regex4 = r"(FROM|TO)"
         out_str = re.sub(regex4, r"'\1' : ", out_str, 0)
         regex5 = r"([\'\s]+TO)"
-        out_str = re.sub(regex5, r"', 'TO", out_str, 0)
+        out_str = re.sub(regex5, r"'} AND {'TO", out_str, 0)
         regex6 = r"(M|O)\'[\s\:t]+"
         out_str = re.sub(regex6, r"\1' : ", out_str, 0)
 
@@ -167,7 +166,7 @@ class CloudIdentityQueryStringPatternTranslator:
             mapped_fields_array = self.dmm.map_field(stix_object, stix_field)
             # Resolve the comparison symbol to use in the query string (usually just ':')
             comparator = self.comparator_lookup[expression.comparator]
-
+            print(stix_field)
             if stix_field == 'start' or stix_field == 'end':
                 transformer = TimestampToMilliseconds()
                 expression.value = transformer.transform(expression.value)
