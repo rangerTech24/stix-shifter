@@ -134,10 +134,28 @@ class CloudIdentityQueryStringPatternTranslator:
         out_str = re.sub(regex1, "", out_str, 0)
         regex2 = r"\sAND\s"
         out_str = "{" + re.sub(regex2, "} AND {", out_str, 0) + ", 'SORT_BY': 'time', 'SORT_ORDER': 'asc'" +  "}"
-        
         regex3 = r"FROM"
         out_str = re.sub(regex3, "} AND {FROM ", out_str, 0)
-        
+
+        #convert client_ip values to CI readable value
+        regex9 = r"'([0-9]+|\.+)*'"
+        ip = re.search(regex9, out_str)
+        if ip:
+            #newIp = ip.group().strip("''")
+            print(ip.group())
+            newIp = "\"{}\"".format(ip.group())
+            out_str = re.sub(regex9, newIp, out_str)
+
+        regex10 = r"'username' : '(.+)' }"
+        username = re.search(regex10, out_str)
+
+        if username:
+            Ureg = r"'username' : "
+            newUser = re.sub(Ureg, "", username.group())
+            newUser = newUser.strip("' ' }")
+            newUser = "\"{}\"".format(newUser)
+            out_str = re.sub(regex10, "\'username\' : " + newUser + " } ", out_str)
+            
         # treat FROM and TO parameters too
         
         regex4 = r"(FROM|TO)"
@@ -154,8 +172,8 @@ class CloudIdentityQueryStringPatternTranslator:
         # Single quotes have to be replaced by double quotes in order to make it as an Json obj
         regex8 = r"'"
         out_str = "[" + re.sub(regex8, '"', out_str, 0) + "]"
-        print(json.loads(out_str))
-        return json.loads(out_str)
+        print(json.dumps(out_str))
+        return out_str
 
     def _parse_expression(self, expression, qualifier=None) -> str:
         if isinstance(expression, ComparisonExpression):  # Base Case
@@ -261,8 +279,9 @@ def translate_pattern(pattern: Pattern, data_model_mapping, options):
     query = re.sub("STOP", " TO ", query)
 
     json_query = cloudIdentity_query_translator.transform_query_to_json(query)
-
+    
     # Change return statement as required to fit with data source query language.
     # If supported by the language, a limit on the number of results may be desired.
     # A single query string, or an array of query strings may be returned
-    return "{}".format(json_query)
+    print(json_query)
+    return json_query

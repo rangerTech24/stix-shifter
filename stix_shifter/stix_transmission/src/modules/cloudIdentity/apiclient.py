@@ -266,9 +266,8 @@ class APIClient():
     #returns and authentication audit - uses filter in payload to refine search 
     def get_auth_audit(self, payload):
         pp = pprint.PrettyPrinter(indent=1)
+        
         #Audit payload are different for each report call so they are initialized here. (Case sensitive)
-
-        #if "PERFORMED_BY_USERNAME" in payload: payload.pop("PERFORMED_BY_USERNAME")
         payload = payload.strip("[]")
         reg1 = r"username"
         data = re.sub(reg1, "USERNAME", payload)
@@ -370,6 +369,7 @@ class APIClient():
             if (index.get("TO")) is not None:
                 TO = time.strptime(index.get("TO"), '%Y-%m-%dT%H:%M:%S.%fZ')
                 index["TO"] = timegm(TO) * 1000
+                #Username and client_ip need to be formatted to "\"username\""
             if index.get("username") is not None:
                 index["username"] = "\"{}\"".format(index['username'])
             if index.get("client_ip") is not None:
