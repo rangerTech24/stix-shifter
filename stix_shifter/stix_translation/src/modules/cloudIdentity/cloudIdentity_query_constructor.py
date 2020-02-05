@@ -148,7 +148,6 @@ class CloudIdentityQueryStringPatternTranslator:
 
         regex8 = r"'"
         out_str = "[" + re.sub(regex8, '"', out_str, 0) + "]"
-        print(out_str)
         #TODO - ask where i should be formulating a response 
         #print(out_str)
          #convert client_ip values to CI readable value
@@ -159,17 +158,23 @@ class CloudIdentityQueryStringPatternTranslator:
         #    newIp = "\"{}\"".format(newIp)
         #    out_str = re.sub(regex9, newIp, out_str)
 
-        #regex10 = r"\"username\" : \"(.+)\" }"
-        #username = re.search(regex10, out_str)
+        
+
+
+        #Concat Multiple Instanses of USERNAME 
+        #print(out_str)
+        #regex10 = r"\"USERNAME\" : \"(.+)\" }"
+        #username = re.search(regex10, out_str) 
 
         #if username:
-        #    Ureg = r"\"username\" : "
-        #    newUser = re.sub(Ureg, "", username.group())
-        #    newUser = newUser.strip(" \" \" } ")
-        #    print(newUser)
-        #    newUser = "\"{}\"".format(newUser)
-         #   print((newUser))
-        #    out_str = re.sub(regex10, "\"username\" : " + newUser + " } ", out_str)
+            #Ureg = r"\"USERNAME\" : "
+            #newUser = re.sub(Ureg, "", username.group())
+            #print(username.group())
+            #newUser = newUser.strip(" \" \" } ")
+            #print(newUser)
+            #newUser = "\"{}\"".format(newUser)
+            #print((newUser))
+            #out_str = re.sub(regex10, "\"USERNAME\" : " + newUser + " } ", out_str)
 
 
         # Finalize the structure -- replace by comma and then it becomes string containing

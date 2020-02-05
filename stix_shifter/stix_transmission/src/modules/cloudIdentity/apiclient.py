@@ -355,7 +355,6 @@ class APIClient():
         pp = pprint.PrettyPrinter(indent=1)
 
         jpayload = json.loads(search_id)
-        print(jpayload)
 
         #Set size field in payload and set username/userid to correct syntax
         for index in jpayload:
@@ -373,12 +372,13 @@ class APIClient():
             if index.get("CLIENT_IP") is not None:
                 index["CLIENT_IP"] = "\"{}\"".format(index['CLIENT_IP'])
 
-
+        print(jpayload)
         data = json.dumps(jpayload) 
+        print(data)
         #Take }, { out of query to finalize return
         reg2 = r"}, {"
         retObj = re.sub(reg2, ", ", data)
-        return 
+        return retObj
         
     #Creates a new reponse - purpose is to refine json response so stix mapping is simple
     def createResponse(self, resp, newContent):
