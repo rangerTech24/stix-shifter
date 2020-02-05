@@ -113,8 +113,6 @@ class APIClient():
         pp = pprint.PrettyPrinter(indent=1)
         payload = self.format_payload(search_id, length)
         
-        
-        print(payload)
         return_obj = dict()
 
         resp = self.call_reports(payload)
@@ -241,6 +239,13 @@ class APIClient():
     def get_app_audit(self, payload):
         pp = pprint.PrettyPrinter(indent=1)
 
+        #Audit payload are different for each report call so they are initialized here. (Case sensitive)
+        payload = payload.strip("[]")
+        reg1 = r"username"
+        data = re.sub(reg1, "USERNAME", payload)
+        reg2 = r"client_ip"
+        data = re.sub(reg2, "CLIENT_IP", data)
+
         #Set applications to all 
         payload['APPID'] = "*"
         #Remove any payload variables that arent readable by report call 
@@ -269,16 +274,12 @@ class APIClient():
         
         #Audit payload are different for each report call so they are initialized here. (Case sensitive)
         payload = payload.strip("[]")
-        reg1 = r"username"
-        data = re.sub(reg1, "USERNAME", payload)
-        reg2 = r"client_ip"
-        data = re.sub(reg2, "CLIENT_IP", data)
-
+ 
         endpoint = "/v1.0/reports/auth_audit_trail" 
-        print(data)
-        resp = self.client.call_api(endpoint, "POST", headers=self.headers, data=data)
+        print(payload)
+        resp = self.client.call_api(endpoint, "POST", headers=self.headers, data=payload)
         jresp = json.loads(resp.read())
-        pp.pprint(jresp)
+        #pp.pprint(jresp)
 
         retList = []
         #If response has more than one return object concat each object
@@ -302,8 +303,6 @@ class APIClient():
         resp = self.client.call_api(endpoint, "POST", headers = self.headers, data=data)
         jresp = json.loads(resp.read())
 
-        #NOTE TODO have not gotten a reponse from this yet
-        #retResp = self.createResponse(resp, jresp['response']['report']['hits'][0]['_source'])
   
 
         return resp
@@ -354,11 +353,10 @@ class APIClient():
     #Format the input query into payload send to Cloud Identity
     def format_payload(self, search_id, length):
         pp = pprint.PrettyPrinter(indent=1)
-        payload = search_id
 
-        reg1 = r"'"
-        out_str = re.sub(reg1, "\"", payload)
-        jpayload = json.loads(out_str)
+        jpayload = json.loads(search_id)
+        print(jpayload)
+
         #Set size field in payload and set username/userid to correct syntax
         for index in jpayload:
             if index.get("FROM") is not None:
@@ -370,16 +368,17 @@ class APIClient():
                 TO = time.strptime(index.get("TO"), '%Y-%m-%dT%H:%M:%S.%fZ')
                 index["TO"] = timegm(TO) * 1000
                 #Username and client_ip need to be formatted to "\"username\""
-            if index.get("username") is not None:
-                index["username"] = "\"{}\"".format(index['username'])
-            if index.get("client_ip") is not None:
-                index["client_ip"] = "\"{}\"".format(index['client_ip'])
+            if index.get("USERNAME") is not None:
+                index["USERNAME"] = "\"{}\"".format(index['USERNAME'])
+            if index.get("CLIENT_IP") is not None:
+                index["CLIENT_IP"] = "\"{}\"".format(index['CLIENT_IP'])
 
-        data = json.dumps(jpayload)
+
+        data = json.dumps(jpayload) 
         #Take }, { out of query to finalize return
         reg2 = r"}, {"
         retObj = re.sub(reg2, ", ", data)
-        return retObj
+        return 
         
     #Creates a new reponse - purpose is to refine json response so stix mapping is simple
     def createResponse(self, resp, newContent):

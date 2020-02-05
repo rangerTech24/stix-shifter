@@ -133,29 +133,9 @@ class CloudIdentityQueryStringPatternTranslator:
         regex1 = r"\(|\)"
         out_str = re.sub(regex1, "", out_str, 0)
         regex2 = r"\sAND\s"
-        out_str = "{" + re.sub(regex2, "} AND {", out_str, 0) + ", 'SORT_BY': 'time', 'SORT_ORDER': 'asc'" +  "}"
+        out_str = "{" + re.sub(regex2, "} AND { ", out_str, 0) + ", 'SORT_BY': 'time', 'SORT_ORDER': 'asc'" +  "}"
         regex3 = r"FROM"
-        out_str = re.sub(regex3, "} AND {FROM ", out_str, 0)
-
-        #convert client_ip values to CI readable value
-        regex9 = r"'([0-9]+|\.+)*'"
-        ip = re.search(regex9, out_str)
-        if ip:
-            #newIp = ip.group().strip("''")
-            print(ip.group())
-            newIp = "\"{}\"".format(ip.group())
-            out_str = re.sub(regex9, newIp, out_str)
-
-        regex10 = r"'username' : '(.+)' }"
-        username = re.search(regex10, out_str)
-
-        if username:
-            Ureg = r"'username' : "
-            newUser = re.sub(Ureg, "", username.group())
-            newUser = newUser.strip("' ' }")
-            newUser = "\"{}\"".format(newUser)
-            out_str = re.sub(regex10, "\'username\' : " + newUser + " } ", out_str)
-            
+        out_str = re.sub(regex3, "} AND { FROM ", out_str, 0)
         # treat FROM and TO parameters too
         
         regex4 = r"(FROM|TO)"
@@ -165,14 +145,38 @@ class CloudIdentityQueryStringPatternTranslator:
         
         regex6 = r"(M|O)\'[\s\:t]+"
         out_str = re.sub(regex6, r"\1' : ", out_str, 0)
+
+        regex8 = r"'"
+        out_str = "[" + re.sub(regex8, '"', out_str, 0) + "]"
+        print(out_str)
+        #TODO - ask where i should be formulating a response 
+        #print(out_str)
+         #convert client_ip values to CI readable value
+        #regex9 = r"'([0-9]+|\.+)*'"
+        #ip = re.search(regex9, out_str)
+        #if ip:
+        #    newIp = ip.group().strip("''")
+        #    newIp = "\"{}\"".format(newIp)
+        #    out_str = re.sub(regex9, newIp, out_str)
+
+        #regex10 = r"\"username\" : \"(.+)\" }"
+        #username = re.search(regex10, out_str)
+
+        #if username:
+        #    Ureg = r"\"username\" : "
+        #    newUser = re.sub(Ureg, "", username.group())
+        #    newUser = newUser.strip(" \" \" } ")
+        #    print(newUser)
+        #    newUser = "\"{}\"".format(newUser)
+         #   print((newUser))
+        #    out_str = re.sub(regex10, "\"username\" : " + newUser + " } ", out_str)
+
+
         # Finalize the structure -- replace by comma and then it becomes string containing
         # an array of Json objects
         regex7 = r"\sOR|\sAND"
         out_str = re.sub(regex7, r",", out_str, 0)
         # Single quotes have to be replaced by double quotes in order to make it as an Json obj
-        regex8 = r"'"
-        out_str = "[" + re.sub(regex8, '"', out_str, 0) + "]"
-        print(json.dumps(out_str))
         return out_str
 
     def _parse_expression(self, expression, qualifier=None) -> str:
@@ -183,7 +187,6 @@ class CloudIdentityQueryStringPatternTranslator:
             mapped_fields_array = self.dmm.map_field(stix_object, stix_field)
             # Resolve the comparison symbol to use in the query string (usually just ':')
             comparator = self.comparator_lookup[expression.comparator]
-            print(stix_field)
             if stix_field == 'start' or stix_field == 'end':
                 transformer = TimestampToMilliseconds()
                 expression.value = transformer.transform(expression.value)
@@ -283,5 +286,4 @@ def translate_pattern(pattern: Pattern, data_model_mapping, options):
     # Change return statement as required to fit with data source query language.
     # If supported by the language, a limit on the number of results may be desired.
     # A single query string, or an array of query strings may be returned
-    print(json_query)
     return json_query
