@@ -268,7 +268,7 @@ class APIClient():
         print(payload)
         resp = self.client.call_api(endpoint, "POST", headers=self.headers, data=payload)
         jresp = json.loads(resp.read())
-        #pp.pprint(jresp)
+        pp.pprint(jresp)
 
         retList = []
         #If response has more than one return object concat each object
