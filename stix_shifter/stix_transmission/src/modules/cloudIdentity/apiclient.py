@@ -112,7 +112,6 @@ class APIClient():
 
         pp = pprint.PrettyPrinter(indent=1)
         payload = self.format_payload(search_id, length)
-        
         return_obj = dict()
 
         resp = self.call_reports(payload)
@@ -239,13 +238,6 @@ class APIClient():
     def get_app_audit(self, payload):
         pp = pprint.PrettyPrinter(indent=1)
 
-        #Audit payload are different for each report call so they are initialized here. (Case sensitive)
-        payload = payload.strip("[]")
-        reg1 = r"username"
-        data = re.sub(reg1, "USERNAME", payload)
-        reg2 = r"client_ip"
-        data = re.sub(reg2, "CLIENT_IP", data)
-
         #Set applications to all 
         payload['APPID'] = "*"
         #Remove any payload variables that arent readable by report call 
@@ -271,9 +263,6 @@ class APIClient():
     #returns and authentication audit - uses filter in payload to refine search 
     def get_auth_audit(self, payload):
         pp = pprint.PrettyPrinter(indent=1)
-        
-        #Audit payload are different for each report call so they are initialized here. (Case sensitive)
-        payload = payload.strip("[]")
  
         endpoint = "/v1.0/reports/auth_audit_trail" 
         print(payload)
@@ -306,11 +295,6 @@ class APIClient():
   
 
         return resp
-
-    def get_admin_activity(self, payload):
-        
-        return
-
        
     def getUser(self, id):
         
@@ -353,32 +337,38 @@ class APIClient():
     #Format the input query into payload send to Cloud Identity
     def format_payload(self, search_id, length):
         pp = pprint.PrettyPrinter(indent=1)
+        search_id = search_id.strip("[]")
+        reg = r"}\s*, {"
+        payload = re.sub(reg, ", ", search_id)
+        jpayload = json.loads(payload)
 
-        jpayload = json.loads(search_id)
+        #Set request size
+        jpayload['SIZE'] = int(length)
 
-        #Set size field in payload and set username/userid to correct syntax
-        for index in jpayload:
-            if index.get("FROM") is not None:
-                #Convert input time to epoch milliseconds
-                FROM = time.strptime(index.get("FROM"), '%Y-%m-%dT%H:%M:%S.%fZ')
-                index["FROM"] = timegm(FROM) * 1000
-                index['SIZE'] = int(length)
-            if (index.get("TO")) is not None:
-                TO = time.strptime(index.get("TO"), '%Y-%m-%dT%H:%M:%S.%fZ')
-                index["TO"] = timegm(TO) * 1000
-                #Username and client_ip need to be formatted to "\"username\""
-            if index.get("USERNAME") is not None:
-                index["USERNAME"] = "\"{}\"".format(index['USERNAME'])
-            if index.get("CLIENT_IP") is not None:
-                index["CLIENT_IP"] = "\"{}\"".format(index['CLIENT_IP'])
+        #Convert TO-FROM to epoch milliseconds.
+        FROM = time.strptime(jpayload["FROM"], '%Y-%m-%dT%H:%M:%S.%fZ')
+        TO = time.strptime(jpayload["TO"], '%Y-%m-%dT%H:%M:%S.%fZ')
+        jpayload['FROM'] = timegm(FROM) * 1000
+        jpayload['TO'] = timegm(TO) * 1000
 
-        print(jpayload)
-        data = json.dumps(jpayload) 
-        print(data)
-        #Take }, { out of query to finalize return
-        reg2 = r"}, {"
-        retObj = re.sub(reg2, ", ", data)
-        return retObj
+        #Convert usernames to CI compatible values 
+        if 'USERNAME' in jpayload:
+            #check for single user else multiple usernames
+            userlist = jpayload['USERNAME']
+            if(not(isinstance(userlist, list))):
+                jpayload["USERNAME"] = "\"{}\"".format(jpayload['USERNAME'])
+            else:
+                jpayload["USERNAME"] = "\"" + "\", \"".join(userlist) + "\""
+        if 'CLIENT_IP' in jpayload:
+            #check for single user else multiple usernames
+            userlist = jpayload['CLIENT_IP']
+            if(not(isinstance(userlist, list))):
+                jpayload["CLIENT_IP"] = "\"{}\"".format(jpayload['CLIENT_IP'])
+            else:
+                jpayload["CLIENT_IP"] = "\"" + "\", \"".join(userlist) + "\""
+
+        payload = json.dumps(jpayload)      
+        return payload
         
     #Creates a new reponse - purpose is to refine json response so stix mapping is simple
     def createResponse(self, resp, newContent):

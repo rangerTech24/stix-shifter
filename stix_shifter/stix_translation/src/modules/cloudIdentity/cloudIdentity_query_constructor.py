@@ -133,7 +133,7 @@ class CloudIdentityQueryStringPatternTranslator:
         regex1 = r"\(|\)"
         out_str = re.sub(regex1, "", out_str, 0)
         regex2 = r"\sAND\s"
-        out_str = "{" + re.sub(regex2, "} AND { ", out_str, 0) + ", 'SORT_BY': 'time', 'SORT_ORDER': 'asc'" +  "}"
+        out_str = "{ " + re.sub(regex2, " } AND { ", out_str, 0) + ", 'SORT_BY': 'time', 'SORT_ORDER': 'asc'" +  "}"
         regex3 = r"FROM"
         out_str = re.sub(regex3, "} AND { FROM ", out_str, 0)
         # treat FROM and TO parameters too
@@ -148,39 +148,29 @@ class CloudIdentityQueryStringPatternTranslator:
 
         regex8 = r"'"
         out_str = "[" + re.sub(regex8, '"', out_str, 0) + "]"
-        #TODO - ask where i should be formulating a response 
-        #print(out_str)
-         #convert client_ip values to CI readable value
-        #regex9 = r"'([0-9]+|\.+)*'"
-        #ip = re.search(regex9, out_str)
-        #if ip:
-        #    newIp = ip.group().strip("''")
-        #    newIp = "\"{}\"".format(newIp)
-        #    out_str = re.sub(regex9, newIp, out_str)
-
-        
-
 
         #Concat Multiple Instanses of USERNAME 
-        #print(out_str)
-        #regex10 = r"\"USERNAME\" : \"(.+)\" }"
-        #username = re.search(regex10, out_str) 
-
-        #if username:
-            #Ureg = r"\"USERNAME\" : "
-            #newUser = re.sub(Ureg, "", username.group())
-            #print(username.group())
-            #newUser = newUser.strip(" \" \" } ")
-            #print(newUser)
-            #newUser = "\"{}\"".format(newUser)
-            #print((newUser))
-            #out_str = re.sub(regex10, "\"USERNAME\" : " + newUser + " } ", out_str)
-
+        regex9 = r"{ \"USERNAME\" : \"(\S*)\" }"
+        username = re.findall(regex9, out_str) 
+        if username is not [] and len(username) > 1:
+            regex10 = r"{ \"USERNAME\" : \"(\S*)\" } AND"
+            new_str = re.sub(regex10, "", out_str, len(username)-1)
+            out_str = re.sub(regex9, "{ \"USERNAME\" : [" + str(username)[1:-1] + "] } ", new_str)
+            
+        #Concat Multiple Instanses of CLIENT_IP 
+        regex11 = r"{ \"CLIENT_IP\" : \"(\S*)\" }"
+        ip = re.findall(regex11, out_str)
+        if ip is not [] and len(ip) > 1:
+            regex12 = r"{ \"CLIENT_IP\" : \"(\S*)\" } AND"
+            ip_str = re.sub(regex12, "", out_str, len(ip)-1)
+            out_str = re.sub(regex11, "{ \"CLIENT_IP\" : [" + str(ip)[1:-1] + "] } ", ip_str)
 
         # Finalize the structure -- replace by comma and then it becomes string containing
         # an array of Json objects
-        regex7 = r"\sOR|\sAND"
-        out_str = re.sub(regex7, r",", out_str, 0)
+        regex13 = r"\sOR|\sAND"
+        out_str = re.sub(regex13, r",", out_str, 0)
+        regex14 = r"'"
+        out_str = re.sub(regex14, '"', out_str, 0)
         # Single quotes have to be replaced by double quotes in order to make it as an Json obj
         return out_str
 
